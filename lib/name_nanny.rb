@@ -23,7 +23,7 @@ module NameNanny
     validates_each(attr_names) do |record, attr_names|
       unless !configuration[:if].nil? and not configuration[:if].call(record)
         words = NameNanny.bad_words(*configuration[:words])
-        record.errors.add( attr_names, configuration[:message] ) if wholesome?(record.send(attr_names), words)
+        record.errors.add( attr_names, configuration[:message] ) unless wholesome?(record.send(attr_names), words)
       end
     end
   end
@@ -40,12 +40,13 @@ module NameNanny
     sub_text(str,"",opts)
   end
 
-  def wholesome?(str, words=[])
+  def wholesome?(str, words=NameNanny.bad_words)
     bad_name = false
-    words =  str.split(" ").each do |name|
+    str.split(" ").each do |name|
+      name = $1 if name.match(/^(.*)[\?\.\!]$/) # strip punctuation
       bad_name = true if words.any? { |v| v.include?(name.downcase) }
     end
-    bad_name
+    !bad_name
   end
 
   protected
