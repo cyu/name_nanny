@@ -16,14 +16,17 @@ module NameNanny
   
   # Use a non-descript error to prevent the users from trying to hack around the filter.
   # Hopefully, they will just give up and choose something nicer.
-def validates_wholesomeness_of(*attr_names)
+  def validates_wholesomeness_of(*attr_names)
     configuration = { :on => :save, :message => "is already taken" }
     configuration.update(attr_names.extract_options!)
     
     validates_each(attr_names, configuration) do |record, attr_name, value|
-      words = NameNanny.bad_words(*configuration[:words])
-      unless wholesome?(record.send(attr_name), words)
-        record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value)
+      v = record.send(attr_name)
+      if v
+        words = NameNanny.bad_words(*configuration[:words])
+        unless wholesome?(record.send(attr_name), words)
+          record.errors.add(attr_name, :invalid, :default => configuration[:message], :value => value)
+        end
       end
     end
   end
